@@ -1,0 +1,6 @@
+{
+  "name": "Request review",
+  "description": "Requests a review from @fiscalis-ai/maintainers on every new pull request",
+  "iconName": "octicon people",
+  "categories": ["Automation"]
+}

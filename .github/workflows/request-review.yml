@@ -1,0 +1,31 @@
+name: request-review
+on:
+  workflow_call:
+    inputs:
+      team:
+        description: Team slug to request a review from
+        type: string
+        default: maintainers
+jobs:
+  request-review:
+    if: ${{ !github.event.pull_request.draft }}
+    runs-on: ubuntu-latest
+    timeout-minutes: 2
+    permissions: {}
+    steps:
+      # Never check out PR code here: callers use pull_request_target, which exposes secrets
+      - uses: actions/create-github-app-token@64ab729a6294000f5aa4a4bc0b73d1f32bc45510 # v3.3.0
+        id: app
+        with:
+          client-id: ${{ secrets.RELEASE_APP_CLIENT_ID }}
+          private-key: ${{ secrets.RELEASE_APP_KEY }}
+          permission-pull-requests: write
+          permission-members: read
+      - name: Request review from team
+        env:
+          GH_TOKEN: ${{ steps.app.outputs.token }}
+          PR: ${{ github.event.pull_request.number }}
+          TEAM: ${{ inputs.team }}
+        run: |
+          gh api -X POST "repos/$GITHUB_REPOSITORY/pulls/$PR/requested_reviewers" \
+            -f "team_reviewers[]=$TEAM" --silent
