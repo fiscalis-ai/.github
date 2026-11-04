@@ -3,7 +3,8 @@ on:
   workflow_call:
 jobs:
   main:
-    if: github.ref_type == 'branch'
+    # Skip the push that creates the branch, e.g. the initial commit of a repo created from the template
+    if: github.ref_type == 'branch' && !github.event.created
     runs-on: ubuntu-latest
     timeout-minutes: 2
     permissions:
