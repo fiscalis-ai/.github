@@ -1,0 +1,6 @@
+{
+  "name": "Release (release-please)",
+  "description": "Semantic versioning, changelog and GitHub Releases from Conventional Commits",
+  "iconName": "octicon tag",
+  "categories": ["Automation"]
+}

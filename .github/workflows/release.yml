@@ -1,0 +1,42 @@
+name: release
+on:
+  workflow_call:
+    secrets:
+      RELEASE_APP_CLIENT_ID:
+        required: true
+      RELEASE_APP_KEY:
+        required: true
+    outputs:
+      released:
+        value: ${{ jobs.release-please.outputs.released }}
+      tag:
+        value: ${{ jobs.release-please.outputs.tag }}
+      releases_created:
+        description: true if any release was created (monorepos)
+        value: ${{ jobs.release-please.outputs.releases_created }}
+      paths_released:
+        description: JSON array of released package paths (monorepos)
+        value: ${{ jobs.release-please.outputs.paths_released }}
+jobs:
+  release-please:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    permissions: {}
+    outputs:
+      released: ${{ steps.rp.outputs.release_created }}
+      tag: ${{ steps.rp.outputs.tag_name }}
+      releases_created: ${{ steps.rp.outputs.releases_created }}
+      paths_released: ${{ steps.rp.outputs.paths_released }}
+    steps:
+      # App token so the release PR triggers CI and the tag is attributed to the bot
+      - uses: actions/create-github-app-token@64ab729a6294000f5aa4a4bc0b73d1f32bc45510 # v3.3.0
+        id: app
+        with:
+          client-id: ${{ secrets.RELEASE_APP_CLIENT_ID }}
+          private-key: ${{ secrets.RELEASE_APP_KEY }}
+          permission-contents: write
+          permission-pull-requests: write
+      - uses: googleapis/release-please-action@45996ed1f6d02564a971a2fa1b5860e934307cf7 # v5.0.0
+        id: rp
+        with:
+          token: ${{ steps.app.outputs.token }}

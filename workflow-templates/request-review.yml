@@ -1,0 +1,11 @@
+name: request-review
+on:
+  pull_request_target: # zizmor: ignore[dangerous-triggers] no PR code is checked out
+    types: [opened, reopened, ready_for_review]
+permissions: {}
+jobs:
+  request-review:
+    uses: fiscalis-ai/.github/.github/workflows/request-review.yml@v1
+    secrets:
+      RELEASE_APP_CLIENT_ID: ${{ secrets.RELEASE_APP_CLIENT_ID }}
+      RELEASE_APP_KEY: ${{ secrets.RELEASE_APP_KEY }}

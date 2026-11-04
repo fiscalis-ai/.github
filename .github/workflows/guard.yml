@@ -1,0 +1,66 @@
+name: guard
+on:
+  workflow_call:
+jobs:
+  main:
+    if: github.ref_type == 'branch'
+    runs-on: ubuntu-latest
+    timeout-minutes: 2
+    permissions:
+      contents: read
+      issues: write
+      pull-requests: read
+      checks: read
+    env:
+      GH_TOKEN: ${{ github.token }}
+      FORCED: ${{ github.event.forced }}
+      MESSAGE: ${{ github.event.head_commit.message }}
+    steps:
+      - name: Verify push to main
+        run: |
+          problems=()
+          [ "$FORCED" = "true" ] && problems+=("force push")
+
+          subject=$(printf '%s' "$MESSAGE" | head -n1)
+          re='^(feat|fix|perf|refactor|docs|test|build|ci|chore|revert)(\([^)]+\))?!?: .+'
+          [[ "$subject" =~ $re ]] || problems+=("commit is not a Conventional Commit: $subject")
+
+          pr=$(gh api "repos/$GITHUB_REPOSITORY/commits/$GITHUB_SHA/pulls" --jq '.[0].number // empty')
+          if [ -z "$pr" ]; then
+            problems+=("direct push without a pull request")
+          else
+            approvals=$(gh api "repos/$GITHUB_REPOSITORY/pulls/$pr/reviews" \
+              --jq '[.[] | select(.state=="APPROVED")] | length')
+            [ "$approvals" -gt 0 ] || problems+=("PR #$pr merged without approval")
+
+            head=$(gh api "repos/$GITHUB_REPOSITORY/pulls/$pr" --jq '.head.sha')
+            failed=$(gh api "repos/$GITHUB_REPOSITORY/commits/$head/check-runs" \
+              --jq '[.check_runs[] | select(.conclusion != "success" and .conclusion != "skipped" and .conclusion != "neutral")] | length')
+            [ "$failed" -eq 0 ] || problems+=("PR #$pr merged with failing or pending checks")
+          fi
+
+          [ ${#problems[@]} -eq 0 ] && exit 0
+          body=$(printf -- '- %s\n' "${problems[@]}")
+          gh issue create --repo "$GITHUB_REPOSITORY" \
+            --title "Guard: rule violation on main by @$GITHUB_ACTOR" \
+            --body "Commit: $GITHUB_SHA"$'\n\n'"$body"
+          echo "::error::$body"
+          exit 1
+
+  tags:
+    if: github.ref_type == 'tag' && github.actor != 'fiscalis-ai-release-bot[bot]'
+    runs-on: ubuntu-latest
+    timeout-minutes: 2
+    permissions:
+      contents: write
+      issues: write
+    env:
+      GH_TOKEN: ${{ github.token }}
+    steps:
+      - name: Remove tag not created by the release bot
+        run: |
+          gh api -X DELETE "repos/$GITHUB_REPOSITORY/git/refs/tags/$GITHUB_REF_NAME"
+          gh issue create --repo "$GITHUB_REPOSITORY" \
+            --title "Guard: tag $GITHUB_REF_NAME pushed by @$GITHUB_ACTOR was deleted" \
+            --body "Only the release bot may create v* tags."
+          exit 1
