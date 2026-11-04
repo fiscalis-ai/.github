@@ -1,0 +1,6 @@
+{
+  "name": "Security scan",
+  "description": "Secret, vulnerability and workflow scanning with trufflehog, Trivy and zizmor",
+  "iconName": "octicon shield",
+  "categories": ["Automation"]
+}

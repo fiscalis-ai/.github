@@ -1,0 +1,6 @@
+{
+  "name": "PR title (Conventional Commits)",
+  "description": "Checks that the pull request title is a Conventional Commit",
+  "iconName": "octicon git-pull-request",
+  "categories": ["Automation"]
+}

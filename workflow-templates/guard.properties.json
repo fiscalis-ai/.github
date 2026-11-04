@@ -1,0 +1,6 @@
+{
+  "name": "Guard (trunk rules)",
+  "description": "Reports direct pushes, unapproved merges and manual tags",
+  "iconName": "octicon shield-check",
+  "categories": ["Automation"]
+}
