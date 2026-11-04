@@ -6,6 +6,11 @@ on:
         description: Team slug to request a review from
         type: string
         default: maintainers
+    secrets:
+      RELEASE_APP_CLIENT_ID:
+        required: true
+      RELEASE_APP_KEY:
+        required: true
 jobs:
   request-review:
     if: ${{ !github.event.pull_request.draft }}

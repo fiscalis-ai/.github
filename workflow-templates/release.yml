@@ -6,7 +6,9 @@ permissions: {}
 jobs:
   release:
     uses: fiscalis-ai/.github/.github/workflows/release.yml@v1
-    secrets: inherit
+    secrets:
+      RELEASE_APP_CLIENT_ID: ${{ secrets.RELEASE_APP_CLIENT_ID }}
+      RELEASE_APP_KEY: ${{ secrets.RELEASE_APP_KEY }}
 
   publish:
     needs: release
