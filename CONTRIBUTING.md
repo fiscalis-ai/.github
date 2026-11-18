@@ -8,6 +8,9 @@
    - `feat: …` → minor release
    - `feat!: …` or `BREAKING CHANGE:` in the body → major release
    - `chore|docs|refactor|test|ci|build|perf: …` → no release
+
+   Keep it at most 64 characters, so the squash commit with ` (#123)` stays within 72. Put details in the
+   description.
 3. Squash-merge only after at least 1 approval and green `ci`, `pr-title` and `security` checks.
 4. Hide unfinished work behind feature flags. `main` must always be deployable.
 
@@ -18,4 +21,5 @@ release-please keeps a `chore(main): release x.y.z` pull request open. Merging i
 tag, GitHub Release and changelog. Never create `v*` tags by hand; they are deleted.
 
 ## Local setup
-Run `npx lefthook install` once after cloning. It checks commit messages and blocks pushes to `main`.
+Run `npx lefthook install` once after cloning. It checks commit messages (Conventional Commit, first line at most
+72 characters) and blocks pushes to `main`.

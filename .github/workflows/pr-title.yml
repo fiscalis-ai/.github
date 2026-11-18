@@ -1,6 +1,11 @@
 name: pr-title
 on:
   workflow_call:
+    inputs:
+      max-length:
+        description: Maximum PR title length. With " (#1234)" added on squash merge, 64 keeps the commit subject within 72.
+        type: number
+        default: 64
 jobs:
   pr-title:
     runs-on: ubuntu-latest
@@ -11,3 +16,16 @@ jobs:
       - uses: amannn/action-semantic-pull-request@48f256284bd46cdaab1048c3721360e808335d50 # v6.1.1
         env:
           GITHUB_TOKEN: ${{ github.token }}
+      # Bot titles such as Dependabot's are generated and cannot be shortened
+      - name: Check title length
+        if: github.event.pull_request.user.type != 'Bot'
+        env:
+          TITLE: ${{ github.event.pull_request.title }}
+          MAX_LENGTH: ${{ inputs.max-length }}
+        run: |
+          length=$(LC_ALL=C.UTF-8 printf '%s' "$TITLE" | LC_ALL=C.UTF-8 wc -m | tr -d ' ')
+          if [ "$length" -gt "$MAX_LENGTH" ]; then
+            echo "::error title=PR title too long::The title is $length characters; keep it at most $MAX_LENGTH so the squash commit stays readable. Put details in the description."
+            exit 1
+          fi
+          echo "Title length $length of $MAX_LENGTH"
